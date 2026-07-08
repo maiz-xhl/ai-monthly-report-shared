@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI部门月报自动化试点</title>
+  <meta name="description" content="AI部门月报自动化与员工成长数据系统试点版">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <section class="panel" id="setupPanel" hidden>
+      <div class="panel-heading">
+        <div>
+          <p class="panel-kicker">First Setup</p>
+          <h2>初始化真实测试环境</h2>
+        </div>
+      </div>
+      <p class="hero-text">
+        当前系统是空白现场，没有任何测试管理员、测试员工或演示数据。请先创建第一位真实管理员，后续再在“成员管理”中继续录入真实组员。
+      </p>
+      <form id="setupForm" class="stack-form narrow-form">
+        <label><span>真实管理员姓名</span><input name="name" required></label>
+        <label><span>岗位</span><input name="position" placeholder="例如：AI部门负责人"></label>
+        <label><span>部门</span><input name="department" value="AI部"></label>
+        <div class="checkbox-group">
+          <span>这个人同时承担的角色</span>
+          <label class="checkbox"><input type="checkbox" checked disabled> 管理层（首次初始化固定拥有）</label>
+          <label class="checkbox"><input type="checkbox" name="roles" value="supervisor"> 主管</label>
+          <label class="checkbox"><input type="checkbox" name="roles" value="employee" checked> 员工/执行</label>
+        </div>
+        <button class="primary-button" type="submit">创建真实管理员并进入系统</button>
+      </form>
+    </section>
+
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">AI Department Pilot</p>
+        <h1>AI 部门月报自动化与员工成长数据系统</h1>
+        <p class="hero-text">
+          第一阶段只做试点闭环。你可以直接切换角色，按“管理层创建目标 → 创建成果 → 员工记录事项与进展 → AI分析 → 主管确认 → 月报生成 → 管理层看板”完整验证。
+        </p>
+      </div>
+      <div class="hero-side">
+        <div class="hero-illustration-card">
+          <div class="hero-illustration-copy">
+            <span class="hero-chip">AI Workflow</span>
+            <strong>目标 · 成果 · 事项 · 分析 · 月报</strong>
+          </div>
+          <svg class="hero-illustration" viewBox="0 0 420 280" aria-hidden="true">
+            <rect x="34" y="24" width="352" height="214" rx="34" fill="#fffdf8" stroke="#111111" stroke-width="6"/>
+            <rect x="58" y="48" width="300" height="18" rx="9" fill="#111111"/>
+            <circle cx="82" cy="57" r="5" fill="#ffd45c"/>
+            <circle cx="100" cy="57" r="5" fill="#ff5a12"/>
+            <circle cx="118" cy="57" r="5" fill="#2f50d8"/>
+
+            <path d="M92 118c12-22 29-34 52-34 24 0 42 14 56 33 13 19 24 31 45 31 17 0 30-9 41-21" fill="none" stroke="#111111" stroke-width="8" stroke-linecap="round"/>
+            <circle cx="94" cy="118" r="18" fill="#ffd45c"/>
+            <circle cx="165" cy="99" r="20" fill="#2f50d8"/>
+            <circle cx="227" cy="136" r="18" fill="#ff5a12"/>
+            <circle cx="293" cy="123" r="18" fill="#59cfc2"/>
+
+            <rect x="74" y="170" width="52" height="24" rx="12" fill="#2f50d8"/>
+            <rect x="138" y="170" width="60" height="24" rx="12" fill="#ff5a12"/>
+            <rect x="210" y="170" width="56" height="24" rx="12" fill="#ffd45c"/>
+            <rect x="278" y="170" width="58" height="24" rx="12" fill="#111111"/>
+
+            <rect x="88" y="206" width="236" height="10" rx="5" fill="#efe9df"/>
+            <rect x="88" y="206" width="168" height="10" rx="5" fill="url(#heroFlow)"/>
+
+            <g transform="translate(300 84)">
+              <rect x="0" y="0" width="66" height="84" rx="20" fill="#fff1bf" stroke="#111111" stroke-width="5"/>
+              <path d="M15 24h36M15 40h36M15 56h24" stroke="#111111" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="52" cy="16" r="10" fill="#ff5a12"/>
+            </g>
+
+            <g transform="translate(48 88)">
+              <rect x="0" y="0" width="74" height="92" rx="24" fill="#dfe6ff"/>
+              <circle cx="36" cy="28" r="16" fill="#ff5a12"/>
+              <path d="M14 72c6-16 19-25 39-25 19 0 31 9 37 25" fill="#111111"/>
+            </g>
+
+            <defs>
+              <linearGradient id="heroFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#2f50d8"/>
+                <stop offset="50%" stop-color="#ff5a12"/>
+                <stop offset="100%" stop-color="#ffd45c"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="hero-metrics-grid">
+          <div class="hero-card accent-yellow">
+            <span>当前月份</span>
+            <strong id="heroMonth">-</strong>
+          </div>
+          <div class="hero-card accent-blue">
+            <span>当前角色</span>
+            <strong id="heroViewer">-</strong>
+          </div>
+          <div class="hero-card accent-orange hero-card-wide">
+            <span>系统状态</span>
+            <strong id="heroStatus">准备中</strong>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="toolbar panel">
+      <div class="toolbar-row">
+        <label>
+          <span>切换验证身份</span>
+          <select id="viewerSelect"></select>
+        </label>
+        <label>
+          <span>查看月份</span>
+          <input type="month" id="monthInput">
+        </label>
+        <div class="toolbar-actions">
+          <button class="secondary-button" id="refreshButton" type="button">刷新数据</button>
+        </div>
+      </div>
+      <div class="viewer-card" id="viewerCard"></div>
+    </section>
+
+    <nav class="tabs panel">
+      <button class="tab-button active" data-tab="dashboard" data-roles="admin">管理看板</button>
+      <button class="tab-button" data-tab="users" data-roles="admin">成员管理</button>
+      <button class="tab-button" data-tab="objectives" data-roles="admin">目标管理</button>
+      <button class="tab-button" data-tab="results" data-roles="admin,supervisor,employee">成果管理</button>
+      <button class="tab-button" data-tab="tasks" data-roles="admin,supervisor,employee">事项与进展</button>
+      <button class="tab-button" data-tab="reviews" data-roles="admin,supervisor">AI确认池</button>
+      <button class="tab-button" data-tab="reports" data-roles="admin,supervisor,employee">月报中心</button>
+    </nav>
+
+    <main>
+      <section class="tab-panel active" id="tab-dashboard">
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Dashboard</p>
+              <h2>管理层基础看板</h2>
+            </div>
+          </div>
+          <div class="dashboard-focus-grid">
+            <section class="focus-panel focus-hero-panel">
+              <div class="focus-head">
+                <div>
+                  <p class="panel-kicker">Overview</p>
+                  <h3>月度核心总览</h3>
+                </div>
+                <div class="focus-badges" id="dashboardBadges"></div>
+              </div>
+              <div id="dashboardFocusStory" class="focus-story"></div>
+            </section>
+
+            <section class="focus-panel focus-mini-panel">
+              <div id="dashboardStats" class="focus-stat-stack"></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="dashboard-visual-grid">
+          <section class="panel contrast-panel">
+            <div class="panel-heading compact">
+              <h3>本月推进节奏</h3>
+            </div>
+            <div id="dashboardPulse" class="pulse-board"></div>
+          </section>
+
+          <section class="panel chart-panel">
+            <div class="panel-heading compact">
+              <h3>事项状态分布</h3>
+            </div>
+            <div id="dashboardStatusChart" class="status-chart"></div>
+          </section>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel">
+            <div class="panel-heading compact">
+              <h3>目标总览</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>目标</th><th>状态</th><th>推进率</th></tr>
+                </thead>
+                <tbody id="objectiveBoardBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading compact">
+              <h3>成果看板</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>成果</th><th>阶段</th><th>事项数</th><th>风险数</th></tr>
+                </thead>
+                <tbody id="resultBoardBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading compact">
+              <h3>人员观察</h3>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>人员</th><th>事项</th><th>完成率</th><th>能力变化</th><th>风险</th></tr>
+                </thead>
+                <tbody id="peopleBoardBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading compact">
+              <h3>风险与价值</h3>
+            </div>
+            <div class="dual-list">
+              <div>
+                <h4>风险池</h4>
+                <ul class="metric-list" id="riskBoardList"></ul>
+              </div>
+              <div>
+                <h4>价值等级</h4>
+                <ul class="metric-list" id="valueBoardList"></ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-users">
+        <div class="panel panel-split">
+          <div>
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Users</p>
+                <h2>创建测试身份</h2>
+              </div>
+            </div>
+            <form id="userForm" class="stack-form">
+              <label><span>姓名</span><input name="name" required></label>
+              <div class="grid two-col">
+                <div class="checkbox-group">
+                  <span>角色（可多选）</span>
+                  <label class="checkbox"><input type="checkbox" name="roles" value="admin"> 管理层</label>
+                  <label class="checkbox"><input type="checkbox" name="roles" value="supervisor"> 主管</label>
+                  <label class="checkbox"><input type="checkbox" name="roles" value="employee" checked> 员工/执行</label>
+                </div>
+                <label><span>岗位</span><input name="position" placeholder="例如：AI应用工程师"></label>
+              </div>
+              <label><span>部门</span><input name="department" value="AI部"></label>
+              <div class="feedback" id="userFeedback" hidden></div>
+              <div class="toolbar-actions">
+                <button class="primary-button" type="submit">新增身份</button>
+                <button class="ghost-button" id="resetSystemButton" type="button">清空原始角色与业务数据</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <div class="panel-heading compact">
+              <h3>当前测试身份</h3>
+            </div>
+            <div id="userList" class="list-stack"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-objectives">
+        <div class="panel panel-split">
+          <div>
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Objectives</p>
+                <h2>创建目标</h2>
+              </div>
+            </div>
+            <form id="objectiveForm" class="stack-form">
+              <label><span>目标名称</span><input name="name" required></label>
+              <label><span>目标说明</span><textarea name="description" rows="4" required></textarea></label>
+              <div class="grid two-col">
+                <label><span>目标来源</span>
+                  <select name="sourceType">
+                    <option value="manager_assigned" selected>部门经理安排</option>
+                    <option value="self_initiated">自行发起</option>
+                    <option value="cross_department">其他部门发起</option>
+                  </select>
+                </label>
+                <label><span>发起部门</span><input name="sourceDepartment" placeholder="例如：AI部 / 设计部 / 摄影部"></label>
+              </div>
+              <label><span>发起方补充说明</span><input name="sourceDetail" placeholder="例如：麦子自行发起 / 品牌部提出需求"></label>
+              <label><span>成功标准（每行一条）</span><textarea name="successCriteria" rows="4"></textarea></label>
+              <div class="grid two-col">
+                <label><span>负责人</span><select name="ownerId" id="objectiveOwner"></select></label>
+                <label><span>状态</span>
+                  <select name="status">
+                    <option value="not_started">未开始</option>
+                    <option value="in_progress" selected>进行中</option>
+                    <option value="at_risk">存在风险</option>
+                    <option value="completed">已完成</option>
+                    <option value="paused">暂停</option>
+                    <option value="cancelled">取消</option>
+                  </select>
+                </label>
+              </div>
+              <div class="grid two-col">
+                <label><span>开始日期</span><input type="date" name="startDate"></label>
+                <label><span>计划完成日期</span><input type="date" name="dueDate"></label>
+              </div>
+              <label><span>本阶段不做什么（每行一条）</span><textarea name="outOfScope" rows="3"></textarea></label>
+              <button class="primary-button" type="submit">保存目标</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-heading compact">
+              <h3>现有目标</h3>
+            </div>
+            <div id="objectiveList" class="list-stack"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-results">
+        <div class="panel panel-split">
+          <div>
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Results</p>
+                <h2>创建成果</h2>
+              </div>
+            </div>
+            <form id="resultForm" class="stack-form">
+              <label><span>所属目标</span><select name="objectiveId" id="resultObjective"></select></label>
+              <label><span>成果名称</span><input name="name" required></label>
+              <label><span>成果说明</span><textarea name="description" rows="4"></textarea></label>
+              <label><span>完成标准（每行一条）</span><textarea name="completionCriteria" rows="4"></textarea></label>
+              <label><span>预期价值</span><textarea name="expectedValue" rows="3"></textarea></label>
+              <div class="grid two-col">
+                <label><span>负责人</span><select name="ownerId" id="resultOwner"></select></label>
+                <label><span>当前阶段</span>
+                  <select name="stage">
+                    <option value="planning">规划中</option>
+                    <option value="developing" selected>开发中</option>
+                    <option value="debugging">调试中</option>
+                    <option value="testing">测试中</option>
+                    <option value="launched">已上线</option>
+                    <option value="optimizing">优化中</option>
+                    <option value="archived">已沉淀</option>
+                    <option value="paused">暂停</option>
+                    <option value="cancelled">取消</option>
+                  </select>
+                </label>
+              </div>
+              <label><span>计划完成日期</span><input type="date" name="dueDate"></label>
+              <button class="primary-button" type="submit">保存成果</button>
+            </form>
+          </div>
+          <div>
+            <div class="panel-heading compact">
+              <h3>现有成果</h3>
+            </div>
+            <div id="resultList" class="list-stack"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-tasks">
+        <div class="task-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Tasks</p>
+                <h2>创建事项</h2>
+              </div>
+            </div>
+            <form id="taskForm" class="stack-form">
+              <label><span>关联成果</span><select name="resultId" id="taskResult"></select></label>
+              <div class="grid two-col">
+                <label><span>负责人</span><select name="ownerId" id="taskOwner"></select></label>
+                <label><span>当前状态</span>
+                  <select name="currentStatus">
+                    <option value="not_started">未开始</option>
+                    <option value="developing" selected>开发中</option>
+                    <option value="debugging">调试中</option>
+                    <option value="testing">测试中</option>
+                    <option value="waiting">等待协同</option>
+                    <option value="paused">暂停</option>
+                    <option value="completed">已完成</option>
+                    <option value="launched">已上线/已交付</option>
+                    <option value="cancelled">取消</option>
+                  </select>
+                </label>
+              </div>
+              <label><span>事项名称</span><input name="title" required></label>
+              <label><span>工作内容</span><textarea name="content" rows="4" required></textarea></label>
+              <div class="grid three-col">
+                <label><span>首次投入时长</span><input type="number" min="0" step="0.5" name="firstInputHours" value="1"></label>
+                <label><span>计划完成日期</span><input type="date" name="plannedCompleteDate"></label>
+                <label><span>阻碍原因</span>
+                  <select name="blockerReason">
+                    <option value="">无</option>
+                    <option value="unclear_requirement">需求不清</option>
+                    <option value="technical_issue">技术问题</option>
+                    <option value="waiting_confirmation">等待确认</option>
+                    <option value="waiting_material">等待素材</option>
+                    <option value="waiting_api_data">等待接口/数据</option>
+                    <option value="compatibility">版本兼容</option>
+                    <option value="cross_department">跨部门协同</option>
+                    <option value="priority_change">优先级调整</option>
+                    <option value="external_system">外部系统限制</option>
+                    <option value="other">其他</option>
+                  </select>
+                </label>
+              </div>
+              <label><span>遇到的问题</span><textarea name="issueDescription" rows="3"></textarea></label>
+              <button class="primary-button" type="submit">保存事项</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Progress</p>
+                <h2>追加进展</h2>
+              </div>
+            </div>
+            <form id="progressForm" class="stack-form">
+              <label><span>选择事项</span><select name="taskId" id="progressTask"></select></label>
+              <label><span>进展内容</span><textarea name="progressContent" rows="4" required></textarea></label>
+              <div class="grid three-col">
+                <label><span>本次投入时长</span><input type="number" min="0" step="0.5" name="inputHours" value="1"></label>
+                <label><span>更新后状态</span>
+                  <select name="statusAfterUpdate">
+                    <option value="developing">开发中</option>
+                    <option value="debugging">调试中</option>
+                    <option value="testing">测试中</option>
+                    <option value="waiting">等待协同</option>
+                    <option value="paused">暂停</option>
+                    <option value="completed">已完成</option>
+                    <option value="launched">已上线/已交付</option>
+                    <option value="cancelled">取消</option>
+                  </select>
+                </label>
+                <label><span>阻碍原因</span>
+                  <select name="blockerReason">
+                    <option value="">无</option>
+                    <option value="unclear_requirement">需求不清</option>
+                    <option value="technical_issue">技术问题</option>
+                    <option value="waiting_confirmation">等待确认</option>
+                    <option value="waiting_material">等待素材</option>
+                    <option value="waiting_api_data">等待接口/数据</option>
+                    <option value="compatibility">版本兼容</option>
+                    <option value="cross_department">跨部门协同</option>
+                    <option value="priority_change">优先级调整</option>
+                    <option value="external_system">外部系统限制</option>
+                    <option value="other">其他</option>
+                  </select>
+                </label>
+              </div>
+              <label><span>本次问题说明</span><textarea name="issueDescription" rows="3"></textarea></label>
+              <button class="primary-button" type="submit">追加进展</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-heading compact">
+            <h3>事项列表</h3>
+          </div>
+          <div id="taskList" class="task-cards"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="tab-reviews">
+        <div class="panel panel-split">
+          <div>
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">Reviews</p>
+                <h2>待确认 AI 判断</h2>
+              </div>
+            </div>
+            <div id="pendingReviewList" class="list-stack"></div>
+          </div>
+          <div>
+            <div class="panel-heading compact">
+              <h3>主管确认表单</h3>
+            </div>
+            <form id="reviewForm" class="stack-form">
+              <label><span>AI分析记录</span><select name="aiAnalysisId" id="reviewAnalysis"></select></label>
+              <label><span>确认结果</span>
+                <select name="reviewStatus">
+                  <option value="confirmed">确认</option>
+                  <option value="corrected">修正</option>
+                  <option value="invalid">无效</option>
+                </select>
+              </label>
+              <label><span>修正后的价值等级</span>
+                <select name="correctedValueLevel">
+                  <option value="">不改</option>
+                  <option value="V1">V1</option>
+                  <option value="V2">V2</option>
+                  <option value="V3">V3</option>
+                  <option value="V4">V4</option>
+                  <option value="V5">V5</option>
+                </select>
+              </label>
+              <label><span>修正后的效率判断</span>
+                <select name="correctedEfficiency">
+                  <option value="">不改</option>
+                  <option value="efficient">高效</option>
+                  <option value="normal">正常</option>
+                  <option value="needs_review">需复盘</option>
+                  <option value="blocked">受阻</option>
+                  <option value="uncertain">待确认</option>
+                </select>
+              </label>
+              <label><span>修正后的风险等级</span>
+                <select name="correctedRiskLevel">
+                  <option value="">不改</option>
+                  <option value="low">低</option>
+                  <option value="medium">中</option>
+                  <option value="high">高</option>
+                </select>
+              </label>
+              <label><span>补充说明</span><textarea name="comment" rows="4"></textarea></label>
+              <label><span>下一步建议</span><textarea name="nextStepSuggestion" rows="3"></textarea></label>
+              <div class="check-row">
+                <label class="checkbox"><input type="checkbox" name="markedForReview"> 标记复盘</label>
+                <label class="checkbox"><input type="checkbox" name="markedAsAsset"> 标记组织资产</label>
+              </div>
+              <button class="primary-button" type="submit">提交主管确认</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-reports">
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">Reports</p>
+              <h2>月报生成与查看</h2>
+            </div>
+            <button class="primary-button" id="generateReportsButton" type="button">生成本月员工月报</button>
+          </div>
+          <div class="report-layout">
+            <div id="reportList" class="list-stack"></div>
+            <article class="report-card" id="reportDetail">
+              <p class="empty-hint">请选择一份月报查看结构化内容。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
