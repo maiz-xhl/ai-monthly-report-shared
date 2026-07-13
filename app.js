@@ -5,9 +5,7 @@ const MONTH_KEY = "ai-pilot-month";
 const TAB_KEY = "ai-pilot-tab";
 const queryParams = new URLSearchParams(window.location.search);
 const requestedViewerId = queryParams.get("viewer");
-if (!requestedViewerId) {
-  localStorage.removeItem(SESSION_TOKEN_KEY);
-}
+localStorage.removeItem(SESSION_TOKEN_KEY);
 
 const setupPanel = document.getElementById("setupPanel");
 const setupForm = document.getElementById("setupForm");
@@ -1982,15 +1980,13 @@ loadBootstrap = async function loadBootstrapOverride() {
       }
     }
     if (pendingAuthViewer?.id) {
-      state.viewerId = pendingAuthViewer.id;
+      state.viewerId = state.data.viewer?.id || "";
       localStorage.removeItem(VIEWER_KEY);
       syncViewerUrl("");
+      state.data.authRequestedViewer = null;
     }
     heroStatus.textContent = "已同步";
     render();
-    if (pendingAuthViewer?.id && !localStorage.getItem(SESSION_TOKEN_KEY)) {
-      openAuthModal(pendingAuthViewer);
-    }
   } catch (error) {
     if (!state.data) {
       heroStatus.textContent = "加载失败";
