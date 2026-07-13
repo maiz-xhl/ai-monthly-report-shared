@@ -5,6 +5,9 @@ const MONTH_KEY = "ai-pilot-month";
 const TAB_KEY = "ai-pilot-tab";
 const queryParams = new URLSearchParams(window.location.search);
 const requestedViewerId = queryParams.get("viewer");
+if (!requestedViewerId) {
+  localStorage.removeItem(SESSION_TOKEN_KEY);
+}
 
 const setupPanel = document.getElementById("setupPanel");
 const setupForm = document.getElementById("setupForm");
@@ -51,7 +54,7 @@ const userList = document.getElementById("userList");
 const userFeedback = document.getElementById("userFeedback");
 
 let state = {
-  viewerId: requestedViewerId || localStorage.getItem(VIEWER_KEY) || "u_admin_chen",
+  viewerId: requestedViewerId || localStorage.getItem(VIEWER_KEY) || "",
   month: localStorage.getItem(MONTH_KEY) || new Date().toISOString().slice(0, 7),
   data: null,
   activeTab: localStorage.getItem(TAB_KEY) || "dashboard",
@@ -575,8 +578,12 @@ function viewerHasRole(role) {
   return Boolean(getViewer()?.roles?.includes(role));
 }
 
+function userIsManagerLike(user) {
+  return Boolean(user?.roles?.includes("admin") || user?.roles?.includes("supervisor"));
+}
+
 function isManagerLike() {
-  return viewerHasRole("admin") || viewerHasRole("supervisor");
+  return userIsManagerLike(getViewer());
 }
 
 function isEmployeeLike() {
@@ -874,8 +881,13 @@ async function loadBootstrap() {
   state.data = await response.json();
   if (!setupRequired() && state.data.viewer?.id) {
     state.viewerId = state.data.viewer.id;
-    localStorage.setItem(VIEWER_KEY, state.viewerId);
-    syncViewerUrl(state.viewerId);
+    if (userIsManagerLike(state.data.viewer)) {
+      localStorage.removeItem(VIEWER_KEY);
+      syncViewerUrl("");
+    } else {
+      localStorage.setItem(VIEWER_KEY, state.viewerId);
+      syncViewerUrl(state.viewerId);
+    }
   }
   heroStatus.textContent = "已同步";
   render();
@@ -1961,13 +1973,18 @@ loadBootstrap = async function loadBootstrapOverride() {
     const pendingAuthViewer = state.data.authRequestedViewer;
     if (!setupRequired() && state.data.viewer?.id && !pendingAuthViewer) {
       state.viewerId = state.data.viewer.id;
-      localStorage.setItem(VIEWER_KEY, state.viewerId);
-      syncViewerUrl(state.viewerId);
+      if (userIsManagerLike(state.data.viewer)) {
+        localStorage.removeItem(VIEWER_KEY);
+        syncViewerUrl("");
+      } else {
+        localStorage.setItem(VIEWER_KEY, state.viewerId);
+        syncViewerUrl(state.viewerId);
+      }
     }
     if (pendingAuthViewer?.id) {
       state.viewerId = pendingAuthViewer.id;
-      localStorage.setItem(VIEWER_KEY, state.viewerId);
-      syncViewerUrl(state.viewerId);
+      localStorage.removeItem(VIEWER_KEY);
+      syncViewerUrl("");
     }
     heroStatus.textContent = "已同步";
     render();
@@ -3300,8 +3317,13 @@ authForm?.addEventListener("submit", async (event) => {
     }
     localStorage.setItem(SESSION_TOKEN_KEY, data.sessionToken);
     state.viewerId = data.viewerId;
-    localStorage.setItem(VIEWER_KEY, state.viewerId);
-    syncViewerUrl(state.viewerId);
+    if (userIsManagerLike(data.viewer)) {
+      localStorage.removeItem(VIEWER_KEY);
+      syncViewerUrl("");
+    } else {
+      localStorage.setItem(VIEWER_KEY, state.viewerId);
+      syncViewerUrl(state.viewerId);
+    }
     if (viewerSelect) viewerSelect.value = state.viewerId;
     closeAuthModal();
     showToast("success", `已进入 ${data.viewer?.name || "管理"} 身份。`);
