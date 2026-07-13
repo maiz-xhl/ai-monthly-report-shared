@@ -10,3 +10,5 @@ services:
         value: 3.11.9
       - key: DATA_DIR
         value: /var/data
+      - key: CANONICAL_HOST
+        value: maiz.xin
