@@ -732,6 +732,7 @@ function setButtonBusy(button, busy, busyText = "处理中...") {
   if (button.dataset.originalText) {
     button.textContent = button.dataset.originalText;
   }
+  button.disabled = false;
 }
 
 function showToast(type, message) {
@@ -3297,7 +3298,9 @@ authForm?.addEventListener("submit", async (event) => {
     state.viewerId = data.viewerId;
     localStorage.setItem(VIEWER_KEY, state.viewerId);
     syncViewerUrl(state.viewerId);
+    if (viewerSelect) viewerSelect.value = state.viewerId;
     closeAuthModal();
+    showToast("success", `已进入 ${data.viewer?.name || "管理"} 身份。`);
     await loadBootstrap();
   } finally {
     setButtonBusy(authConfirmButton, false);
