@@ -924,7 +924,7 @@ function openAuthModal(targetUser) {
   if (!targetUser) return;
   state.pendingAuthUserId = targetUser.id;
   authTitle.textContent = `进入 ${targetUser.name} 的主管/管理身份`;
-  authHint.innerHTML = `请输入主管或管理身份对应的验证码。<br>目标身份：${escapeHtml(targetUser.name)}`;
+  authHint.innerHTML = `请输入主管或管理身份验证码：<strong>8888</strong>。<br>目标身份：${escapeHtml(targetUser.name)}`;
   authCodeInput.value = "";
   if (authConfirmButton) {
     setButtonBusy(authConfirmButton, false);

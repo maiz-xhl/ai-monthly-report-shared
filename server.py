@@ -24,6 +24,7 @@ APP_TIMEZONE = os.getenv("APP_TIMEZONE", "Asia/Shanghai")
 AUTO_REPORT_CHECK_INTERVAL_SECONDS = int(os.getenv("AUTO_REPORT_CHECK_INTERVAL_SECONDS", "3600"))
 AUTO_REPORT_LOCK = threading.Lock()
 LAST_AUTO_REPORT_MONTH = ""
+MANAGER_ACCESS_CODE = os.getenv("MANAGER_ACCESS_CODE", "8888").strip()
 MANAGER_ACCESS_CODE_SUFFIX_LENGTH = 4
 
 ROLE_ADMIN = "admin"
@@ -617,6 +618,13 @@ def session_token(handler) -> str:
 
 def manager_access_code_for_user(user_row: sqlite3.Row | dict) -> str:
     return str(user_row["id"])[-MANAGER_ACCESS_CODE_SUFFIX_LENGTH:]
+
+
+def valid_manager_access_codes(user_row: sqlite3.Row | dict) -> set[str]:
+    codes = {manager_access_code_for_user(user_row)}
+    if MANAGER_ACCESS_CODE:
+        codes.add(MANAGER_ACCESS_CODE)
+    return {code.lower() for code in codes if code}
 
 
 def create_auth_session(conn: sqlite3.Connection, user_id: str) -> str:
@@ -2383,8 +2391,7 @@ class AppHandler(SimpleHTTPRequestHandler):
             if user_row is None:
                 return self.send_json({"error": "未找到要切换的身份。"}, HTTPStatus.NOT_FOUND)
             if is_manager_viewer(user_row):
-                expected_code = manager_access_code_for_user(user_row)
-                if access_code.lower() != expected_code.lower():
+                if access_code.lower() not in valid_manager_access_codes(user_row):
                     return self.send_json(
                         {"error": "主管验证码错误，请重新输入。"},
                         HTTPStatus.FORBIDDEN,
