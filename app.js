@@ -639,6 +639,13 @@ function assignableUsersForViewer() {
   return viewer ? users.filter((item) => item.id === viewer.id) : [];
 }
 
+function roleRecordOwnersForViewer() {
+  const users = state.data?.users.filter((item) => item.roles.includes("employee")) || [];
+  if (isManagerLike()) return users;
+  const viewer = getViewer();
+  return viewer?.roles?.includes("employee") ? users.filter((item) => item.id === viewer.id) : [];
+}
+
 function visibleTasks() {
   const tasks = state.data?.tasks || [];
   if (isManagerLike()) return tasks;
@@ -2020,8 +2027,7 @@ renderSelects = function renderSelectsOverride() {
   setSelectOptions(progressTask, state.data.tasks, "请先创建事项", (item) => item.title);
   setSelectOptions(reviewAnalysis, state.data.pendingReviews, "当前没有待确认的 AI 判断", (item) => item.generatedText || `${item.targetType} ${item.targetId}`);
   if (roleRecordOwner) {
-    const alleCandidates = state.data.users.filter((item) => isAlleUser(item));
-    setSelectOptions(roleRecordOwner, alleCandidates, "暂无阿勒身份", (user) => `${user.name} / ${user.position || "-"}`);
+    setSelectOptions(roleRecordOwner, roleRecordOwnersForViewer(), "暂无可记录成员", (user) => `${user.name} / ${user.position || "-"}`);
   }
   if (roleRecordDate && !roleRecordDate.value) {
     roleRecordDate.value = `${state.month}-01`;
@@ -2045,7 +2051,7 @@ applyPermissions = function applyPermissionsOverride() {
   if (roleRecordForm) {
     const roleRecordButton = roleRecordForm.querySelector('button[type="submit"]');
     if (roleRecordButton) {
-      roleRecordButton.disabled = setupRequired() || !(isAlleViewer() || canManager || isAlleUser(userById(roleRecordOwner?.value)));
+      roleRecordButton.disabled = setupRequired() || !selectHasRealOptions(roleRecordOwner) || !(isEmployeeLike() || canManager);
     }
   }
 };
@@ -2641,8 +2647,7 @@ renderSelects = function renderSelectsScopedOverride() {
   setSelectOptions(progressTask, visibleTasks(), "暂无可见事项", (item) => item.title);
   setSelectOptions(reviewAnalysis, state.data.pendingReviews, "暂无待确认AI判断", (item) => item.generatedText || `${item.targetType} ${item.targetId}`);
   if (roleRecordOwner) {
-    const alleCandidates = (state.data.users || []).filter((user) => isAlleUser(user));
-    setSelectOptions(roleRecordOwner, alleCandidates, "暂无阿勒身份", (user) => `${user.name} / ${user.position || "-"}`);
+    setSelectOptions(roleRecordOwner, roleRecordOwnersForViewer(), "暂无可记录成员", (user) => `${user.name} / ${user.position || "-"}`);
   }
   if (roleRecordDate && !roleRecordDate.value) {
     roleRecordDate.value = `${state.month}-01`;
