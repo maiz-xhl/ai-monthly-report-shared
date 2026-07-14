@@ -357,7 +357,7 @@ const ALLE_RECORD_TEMPLATES = {
     quickLabel: "记录效率数据",
     fields: `
       <div class="grid two-col">
-        <label><span>关联项目名称</span><select name="project_name" data-project-select required></select></label>
+        <label><span>关联项目名称（可选）</span><select name="project_name" data-project-select></select></label>
         <label><span>使用部门</span><input name="department"></label>
       </div>
       <div class="grid three-col">
@@ -1596,7 +1596,7 @@ function populateRoleRecordDynamicFields() {
   roleRecordForm.querySelectorAll("[data-project-select]").forEach((select) => {
     const currentValue = select.value || "";
     select.innerHTML = [
-      '<option value="">请选择真实关联项目</option>',
+      '<option value="">暂不关联项目</option>',
       ...projectOptions.map(([value, label]) => `<option value="${escapeHtml(value)}"${currentValue === value ? " selected" : ""}>${escapeHtml(label)}</option>`),
     ].join("");
   });
@@ -1753,7 +1753,7 @@ function renderRoleRecordList() {
     ${projectCards ? `<div class="section-stack"><div class="panel-heading compact"><h3>项目时间线</h3></div>${projectCards}</div>` : ""}
     <div class="section-stack">
       <div class="panel-heading compact"><h3>最近记录</h3></div>
-      ${recordCards || '<p class="empty-hint">当前还没有阿勒专属记录。</p>'}
+      ${recordCards || '<p class="empty-hint">当前还没有随时记录。</p>'}
     </div>
   `;
 }
@@ -1770,7 +1770,7 @@ async function saveRoleRecord(event) {
     });
     const body = await readResponseData(response);
     if (!response.ok) {
-      showFeedback(roleRecordFeedback, "error", body.error || "阿勒记录保存失败，请稍后重试。");
+      showFeedback(roleRecordFeedback, "error", body.error || "随时记录保存失败，请稍后重试。");
       return;
     }
     roleRecordForm.reset();
@@ -1778,8 +1778,8 @@ async function saveRoleRecord(event) {
     renderRoleRecordFields();
     state.activeTab = "tasks";
     await loadBootstrap();
-    showFeedback(roleRecordFeedback, "success", "阿勒专属记录已保存。");
-    showToast("success", "阿勒专属记录已保存。");
+    showFeedback(roleRecordFeedback, "success", "随时记录已保存。");
+    showToast("success", "随时记录已保存。");
   });
 }
 

@@ -782,6 +782,7 @@ def normalize_alle_record_payload(payload: dict) -> tuple[dict, str, str, str]:
             raise ValueError("当前阶段不在允许范围内。")
         title = related_project
     elif record_type == "efficiency_result":
+        related_project = related_project or "效率验证记录"
         if not related_project:
             raise ValueError("效率验证必须关联项目名称。")
         title = related_project
@@ -2569,8 +2570,8 @@ class AppHandler(SimpleHTTPRequestHandler):
                 return self.send_json({"error": "未找到记录所属成员。"}, HTTPStatus.BAD_REQUEST)
             if not is_manager_viewer(viewer) and user_row["id"] != viewer["id"]:
                 return self.send_json({"error": "普通员工只能为自己新增记录。"}, HTTPStatus.FORBIDDEN)
-            if not is_alle_user(user_row):
-                return self.send_json({"error": "当前专属记录模板仅对阿勒开放。"}, HTTPStatus.BAD_REQUEST)
+            if False:
+                pass
             try:
                 content, record_type, title, record_date = normalize_alle_record_payload(payload)
             except ValueError as error:
